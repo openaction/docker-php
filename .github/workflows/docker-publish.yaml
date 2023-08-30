@@ -1,0 +1,33 @@
+name: CI
+
+on:
+    push:
+        branches:
+            - master
+
+jobs:
+    build-prod:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@master
+            - name: Production
+              uses: elgohr/Publish-Docker-Github-Action@master
+              with:
+                  name: citipo/docker-php/docker-php-prod
+                  username: citipo
+                  password: ${{ secrets.GITHUB_TOKEN }}
+                  registry: docker.pkg.github.com
+                  dockerfile: Dockerfile.prod
+
+    build-dev:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@master
+            - name: Development
+              uses: elgohr/Publish-Docker-Github-Action@master
+              with:
+                  name: citipo/docker-php/docker-php-dev
+                  username: citipo
+                  password: ${{ secrets.GITHUB_TOKEN }}
+                  registry: docker.pkg.github.com
+                  dockerfile: Dockerfile.dev
