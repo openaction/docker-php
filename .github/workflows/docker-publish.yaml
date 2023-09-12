@@ -6,27 +6,27 @@ on:
             - main
 
 jobs:
-    build-prod:
+    publish-prod:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@master
             - name: Production
               uses: elgohr/Publish-Docker-Github-Action@master
               with:
-                  name: openaction/docker-php/docker-php-prod
+                  name: ghcr.io/${{ github.repository }}/prod
                   username: ${{ secrets.DOCKER_USERNAME }}
                   password: ${{ secrets.DOCKER_PASSWORD }}
                   registry: docker.pkg.github.com
                   dockerfile: Dockerfile.prod
 
-    build-dev:
+    publish-dev:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@master
             - name: Development
               uses: elgohr/Publish-Docker-Github-Action@master
               with:
-                  name: openaction/docker-php/docker-php-dev
+                  name: ghcr.io/${{ github.repository }}/dev
                   username: ${{ secrets.DOCKER_USERNAME }}
                   password: ${{ secrets.DOCKER_PASSWORD }}
                   registry: docker.pkg.github.com
