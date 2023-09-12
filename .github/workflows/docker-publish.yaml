@@ -13,7 +13,8 @@ jobs:
             - name: Production
               uses: elgohr/Publish-Docker-Github-Action@master
               with:
-                  name: ghcr.io/${{ github.repository }}/prod
+                  name: ghcr.io/${{ github.repository }}
+                  tags: prod
                   username: ${{ secrets.DOCKER_USERNAME }}
                   password: ${{ secrets.DOCKER_PASSWORD }}
                   registry: docker.pkg.github.com
@@ -26,7 +27,8 @@ jobs:
             - name: Development
               uses: elgohr/Publish-Docker-Github-Action@master
               with:
-                  name: ghcr.io/${{ github.repository }}/dev
+                  name: ghcr.io/${{ github.repository }}
+                  tags: dev
                   username: ${{ secrets.DOCKER_USERNAME }}
                   password: ${{ secrets.DOCKER_PASSWORD }}
                   registry: docker.pkg.github.com
