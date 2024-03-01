@@ -21,7 +21,7 @@ RUN apk add --no-cache --virtual .persistent-deps \
         postgresql-client \
         poppler \
         poppler-utils \
-        py-pip \
+        supervisor \
         zlib
 
 RUN set -xe \
@@ -75,7 +75,6 @@ RUN set -xe \
     )" \
     && apk add --no-cache --virtual .php-phpexts-rundeps $runDeps \
     && apk del .build-deps \
-    && pip install supervisor \
     && mkdir -p /run/nginx/ \
     && mkdir /etc/periodic/1min
 
