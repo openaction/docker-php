@@ -1,33 +1,32 @@
-name: CI
+name: PHP 8.1
 
 on:
     push:
-        branches:
-            - main
+        branches: ['8.1']
 
 jobs:
-    publish-prod:
+    prod:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@master
-            - name: Production
-              uses: elgohr/Publish-Docker-Github-Action@master
+            - uses: elgohr/Publish-Docker-Github-Action@master
               with:
                   name: ${{ github.repository }}/prod
                   username: ${{ secrets.DOCKER_USERNAME }}
                   password: ${{ secrets.DOCKER_PASSWORD }}
                   registry: ghcr.io
                   dockerfile: Dockerfile.prod
+                  tags: '8.1'
 
-    publish-dev:
+    dev:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@master
-            - name: Development
-              uses: elgohr/Publish-Docker-Github-Action@master
+            - uses: elgohr/Publish-Docker-Github-Action@master
               with:
                   name: ${{ github.repository }}/dev
                   username: ${{ secrets.DOCKER_USERNAME }}
                   password: ${{ secrets.DOCKER_PASSWORD }}
                   registry: ghcr.io
                   dockerfile: Dockerfile.dev
+                  tags: '8.1'
