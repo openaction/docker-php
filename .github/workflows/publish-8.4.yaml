@@ -1,8 +1,8 @@
-name: PHP 8.1
+name: PHP 8.4
 
 on:
     push:
-        branches: ['8.1']
+        branches: ['8.4']
 
 jobs:
     prod:
@@ -16,7 +16,7 @@ jobs:
                   password: ${{ secrets.DOCKER_PASSWORD }}
                   registry: ghcr.io
                   dockerfile: Dockerfile.prod
-                  tags: '8.1'
+                  tags: '8.4'
 
     dev:
         runs-on: ubuntu-latest
@@ -29,4 +29,4 @@ jobs:
                   password: ${{ secrets.DOCKER_PASSWORD }}
                   registry: ghcr.io
                   dockerfile: Dockerfile.dev
-                  tags: '8.1'
+                  tags: '8.4'
