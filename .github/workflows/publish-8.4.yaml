@@ -22,23 +22,13 @@ jobs:
                   username: ${{ secrets.DOCKER_USERNAME }}
                   password: ${{ secrets.DOCKER_PASSWORD }}
 
-            - uses: docker/metadata-action@v5
-              id: meta
-              with:
-                  images: ghcr.io/${{ github.repository }}/prod
-                  tags: |
-                      type=ref,event=branch
-                      type=ref,event=tag
-                      type=sha
-
             - uses: docker/build-push-action@v6
               with:
                   context: .
                   file: ./Dockerfile.prod
                   platforms: linux/amd64,linux/arm64
                   push: true
-                  tags: '8.4'
-                  labels: ${{ steps.meta.outputs.labels }}
+                  tags: 'ghcr.io/${{ github.repository }}/prod:8.4'
                   cache-from: type=gha
                   cache-to: type=gha,mode=max
 
@@ -59,22 +49,12 @@ jobs:
                   username: ${{ secrets.DOCKER_USERNAME }}
                   password: ${{ secrets.DOCKER_PASSWORD }}
 
-            - uses: docker/metadata-action@v5
-              id: meta
-              with:
-                  images: ghcr.io/${{ github.repository }}/dev
-                  tags: |
-                      type=ref,event=branch
-                      type=ref,event=tag
-                      type=sha
-
             - uses: docker/build-push-action@v6
               with:
                   context: .
                   file: ./Dockerfile.dev
                   platforms: linux/amd64,linux/arm64
                   push: true
-                  tags: '8.4'
-                  labels: ${{ steps.meta.outputs.labels }}
+                  tags: 'ghcr.io/${{ github.repository }}/dev:8.4'
                   cache-from: type=gha
                   cache-to: type=gha,mode=max
