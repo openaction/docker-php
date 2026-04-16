@@ -9,6 +9,7 @@ ENV AMQP_VERSION=2.1.2 \
     COMPOSER_ALLOW_SUPERUSER=1
 
 RUN apk add --no-cache --virtual .persistent-deps \
+        curl \
         git \
         gmp-dev \
         icu-libs \
