@@ -1,4 +1,5 @@
-FROM composer:2
+FROM composer:2 AS composer
+FROM blackfire/blackfire:2 AS blackfire
 FROM php:8.4-fpm-alpine
 
 LABEL org.opencontainers.image.source=https://github.com/openaction/docker-php
@@ -6,7 +7,17 @@ LABEL org.opencontainers.image.source=https://github.com/openaction/docker-php
 ENV AMQP_VERSION=2.1.2 \
     APCU_VERSION=5.1.24 \
     REDIS_VERSION=6.2.0 \
-    COMPOSER_ALLOW_SUPERUSER=1
+    COMPOSER_ALLOW_SUPERUSER=1 \
+    BLACKFIRE_AGENT_SOCKET=unix:///var/run/blackfire/agent.sock \
+    BLACKFIRE_SOCKET=unix:///var/run/blackfire/agent.sock \
+    BLACKFIRE_ENDPOINT=https://blackfire.io \
+    BLACKFIRE_LOG_LEVEL=1 \
+    BLACKFIRE_LOG_FILE= \
+    BLACKFIRE_DISABLE_PCOV=1
+
+COPY conf/install-blackfire.sh /usr/local/bin/install-blackfire
+COPY conf/start-blackfire-agent.sh /usr/local/bin/start-blackfire-agent
+COPY conf/start-php-fpm.sh /usr/local/bin/start-php-fpm
 
 RUN apk add --no-cache --virtual .persistent-deps \
         curl \
@@ -26,6 +37,7 @@ RUN apk add --no-cache --virtual .persistent-deps \
         zlib
 
 RUN set -xe \
+    && chmod +x /usr/local/bin/install-blackfire /usr/local/bin/start-blackfire-agent /usr/local/bin/start-php-fpm \
     && apk add --no-cache --virtual .build-deps \
         $PHPIZE_DEPS \
         freetype \
@@ -63,9 +75,10 @@ RUN set -xe \
         amqp-${AMQP_VERSION} \
         apcu-${APCU_VERSION} \
         redis-${REDIS_VERSION} \
-	&& docker-php-ext-enable --ini-name 75-amqp.ini amqp \
+    && docker-php-ext-enable --ini-name 75-amqp.ini amqp \
     && docker-php-ext-enable --ini-name 80-apcu.ini apcu \
-	&& docker-php-ext-enable --ini-name 85-redis.ini redis \
+    && docker-php-ext-enable --ini-name 85-redis.ini redis \
+    && install-blackfire \
     && runDeps="$( \
         scanelf --needed --nobanner --format '%n#p' --recursive /usr/local/lib/php/extensions \
             | tr ',' '\n' \
@@ -77,7 +90,8 @@ RUN set -xe \
     && mkdir -p /run/nginx/ \
     && mkdir /etc/periodic/1min
 
-COPY --from=0 /usr/bin/composer /usr/bin/composer
+COPY --from=composer /usr/bin/composer /usr/bin/composer
+COPY --from=blackfire /usr/local/bin/blackfire /usr/local/bin/blackfire
 COPY conf/php-prod.ini /usr/local/etc/php/php.ini
 COPY conf/www.conf /usr/local/etc/php-fpm.d/www.conf
 COPY conf/nginx.conf /etc/nginx/nginx.conf
