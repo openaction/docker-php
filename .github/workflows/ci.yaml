@@ -4,7 +4,7 @@ on: push
 
 jobs:
     prod:
-        runs-on: ubicloud-standard-4-ubuntu-2404
+        runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
 
@@ -31,7 +31,7 @@ jobs:
                   docker push "${IMAGE}:${TAG}"
 
     dev:
-        runs-on: ubicloud-standard-4-ubuntu-2404
+        runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
 
