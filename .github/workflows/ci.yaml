@@ -1,0 +1,58 @@
+name: CI
+
+on: push
+
+jobs:
+    prod:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Build prod image
+              env:
+                  IMAGE: ghcr.io/${{ github.repository }}/prod
+                  TAG: 8.4
+              run: |
+                  docker build -t "${IMAGE}:${TAG}" -f Dockerfile.prod .
+
+            - uses: docker/login-action@v3
+              if: github.ref == 'refs/heads/8.4'
+              with:
+                  registry: ghcr.io
+                  username: ${{ secrets.DOCKER_USERNAME }}
+                  password: ${{ secrets.DOCKER_PASSWORD }}
+
+            - name: Push prod image
+              if: github.ref == 'refs/heads/8.4'
+              env:
+                  IMAGE: ghcr.io/${{ github.repository }}/prod
+                  TAG: 8.4
+              run: |
+                  docker push "${IMAGE}:${TAG}"
+
+    dev:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Build dev image
+              env:
+                  IMAGE: ghcr.io/${{ github.repository }}/dev
+                  TAG: 8.4
+              run: |
+                  docker build -t "${IMAGE}:${TAG}" -f Dockerfile.dev .
+
+            - uses: docker/login-action@v3
+              if: github.ref == 'refs/heads/8.4'
+              with:
+                  registry: ghcr.io
+                  username: ${{ secrets.DOCKER_USERNAME }}
+                  password: ${{ secrets.DOCKER_PASSWORD }}
+
+            - name: Push dev image
+              if: github.ref == 'refs/heads/8.4'
+              env:
+                  IMAGE: ghcr.io/${{ github.repository }}/dev
+                  TAG: 8.4
+              run: |
+                  docker push "${IMAGE}:${TAG}"
