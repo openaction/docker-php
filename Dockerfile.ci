@@ -35,6 +35,7 @@ RUN apk add --no-cache --virtual .persistent-deps \
         coreutils \
         curl \
         docker-cli \
+        docker-cli-buildx \
         docker-cli-compose \
         findutils \
         g++ \
@@ -146,6 +147,7 @@ RUN git clone --depth 1 --branch "${NVM_VERSION}" https://github.com/nvm-sh/nvm.
     && npm --version \
     && yarn --version \
     && docker --version \
+    && docker buildx version \
     && docker compose version
 
 EXPOSE 80

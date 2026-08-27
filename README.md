@@ -20,8 +20,8 @@ FROM ghcr.io/openaction/docker-php/ci:8.4
 
 The CI image uses the same PHP foundation as the development image and adds the
 Symfony CLI, the latest Composer 2, NVM, Node.js 22, Corepack/Yarn, Docker CLI
-with Docker Compose, and common build and automation tools. NVM is loaded
-automatically by Bash and is also available explicitly:
+with Buildx and Docker Compose, and common build and automation tools. NVM is
+loaded automatically by Bash and is also available explicitly:
 
 ```bash
 . /etc/profile.d/nvm.sh
