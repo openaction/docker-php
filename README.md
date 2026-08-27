@@ -12,9 +12,25 @@ FROM ghcr.io/openaction/docker-php/dev
 FROM ghcr.io/openaction/docker-php/prod
 ```
 
+## CI base image
+
+```
+FROM ghcr.io/openaction/docker-php/ci:8.4
+```
+
+The CI image uses the same PHP foundation as the development image and adds the
+Symfony CLI, the latest Composer 2, NVM, Node.js 22, Corepack/Yarn, Docker CLI
+with Docker Compose, and common build and automation tools. NVM is loaded
+automatically by Bash and is also available explicitly:
+
+```bash
+. /etc/profile.d/nvm.sh
+nvm --version
+```
+
 ## Blackfire
 
-Both images include the Blackfire PHP probe and the `blackfire` CLI. The Blackfire agent starts only when server credentials are provided through environment variables.
+All images include the Blackfire PHP probe and the `blackfire` CLI. The Blackfire agent starts only when server credentials are provided through environment variables.
 
 ```bash
 docker run --rm -p 8080:80 \
