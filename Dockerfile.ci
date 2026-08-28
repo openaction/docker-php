@@ -11,6 +11,8 @@ ARG NVM_VERSION=v0.40.7
 ENV AMQP_VERSION=2.1.2 \
     APCU_VERSION=5.1.24 \
     REDIS_VERSION=6.2.0 \
+    TZ=UTC \
+    PANTHER_CHROME_BINARY=/usr/bin/chromium-browser \
     COMPOSER_ALLOW_SUPERUSER=1 \
     BLACKFIRE_AGENT_SOCKET=unix:///var/run/blackfire/agent.sock \
     BLACKFIRE_SOCKET=unix:///var/run/blackfire/agent.sock \
@@ -32,6 +34,8 @@ RUN apk add --no-cache --virtual .persistent-deps \
         bash \
         binutils \
         ca-certificates \
+        chromium \
+        chromium-chromedriver \
         coreutils \
         curl \
         docker-cli \
@@ -129,7 +133,7 @@ RUN set -xe \
 COPY --from=composer /usr/bin/composer /usr/bin/composer
 COPY --from=blackfire /usr/local/bin/blackfire /usr/local/bin/blackfire
 COPY --from=symfony-cli /usr/local/bin/symfony /usr/local/bin/symfony
-COPY conf/php-dev.ini /usr/local/etc/php/php.ini
+COPY conf/php-ci.ini /usr/local/etc/php/php.ini
 COPY conf/www.conf /usr/local/etc/php-fpm.d/www.conf
 COPY conf/nginx.conf /etc/nginx/nginx.conf
 COPY conf/supervisord.conf /usr/local/etc/supervisord.conf
@@ -148,7 +152,10 @@ RUN git clone --depth 1 --branch "${NVM_VERSION}" https://github.com/nvm-sh/nvm.
     && yarn --version \
     && docker --version \
     && docker buildx version \
-    && docker compose version
+    && docker compose version \
+    && php -r 'echo date_default_timezone_get();' \
+    && chromium-browser --version \
+    && chromedriver --version
 
 EXPOSE 80
 
