@@ -72,7 +72,8 @@ RUN apk add --no-cache --virtual .persistent-deps \
         util-linux \
         wget \
         zip \
-        zlib
+        zlib \
+        zstd
 
 RUN set -xe \
     && chmod +x /usr/local/bin/install-blackfire /usr/local/bin/start-blackfire-agent /usr/local/bin/start-php-fpm \
@@ -155,7 +156,8 @@ RUN git clone --depth 1 --branch "${NVM_VERSION}" https://github.com/nvm-sh/nvm.
     && docker compose version \
     && php -r 'echo date_default_timezone_get();' \
     && chromium-browser --version \
-    && chromedriver --version
+    && chromedriver --version \
+    && zstd --version
 
 EXPOSE 80
 
