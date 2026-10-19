@@ -13,4 +13,9 @@ if { [ -n "${BLACKFIRE_SERVER_ID:-}" ] && [ -n "${BLACKFIRE_SERVER_TOKEN:-}" ]; 
     fi
 fi
 
-exec /usr/local/sbin/php-fpm --nodaemonize
+# PHP-FPM logs as JSON events on stdout
+rm -f /tmp/php-fpm.log
+mkfifo -m 600 /tmp/php-fpm.log
+awk -v source=php-fpm -f /usr/local/etc/log-to-json.awk < /tmp/php-fpm.log &
+
+exec /usr/local/sbin/php-fpm --nodaemonize 2> /tmp/php-fpm.log
