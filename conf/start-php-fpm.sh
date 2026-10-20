@@ -13,4 +13,15 @@ if { [ -n "${BLACKFIRE_SERVER_ID:-}" ] && [ -n "${BLACKFIRE_SERVER_TOKEN:-}" ]; 
     fi
 fi
 
-exec /usr/local/sbin/php-fpm --nodaemonize
+# PHP-FPM logs as JSON events on stdout
+rm -f /tmp/php-fpm.log
+mkfifo -m 600 /tmp/php-fpm.log
+awk -v source=php-fpm -f /usr/local/etc/log-to-json.awk < /tmp/php-fpm.log &
+
+# Without the Blackfire agent, the APM of the probe logs a connection error in each worker every 5 minutes
+apm_enabled=1
+if [ -z "${BLACKFIRE_SERVER_ID:-}" ] || [ -z "${BLACKFIRE_SERVER_TOKEN:-}" ]; then
+    apm_enabled=0
+fi
+
+exec /usr/local/sbin/php-fpm --nodaemonize -d blackfire.apm_enabled="$apm_enabled" 2> /tmp/php-fpm.log
