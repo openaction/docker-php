@@ -1,7 +1,9 @@
 # Converts the nginx and PHP-FPM output to JSON events, one per line, with a
 # "source" field (awk -v source=nginx|php-fpm). JSON lines (nginx access log,
-# application logs written by PHP-FPM workers) are kept as is. Only warnings
-# and errors are emitted: notices, deprecations and stack traces are dropped.
+# application logs written by PHP-FPM workers) are kept as is, except the
+# "x_forwarded_for" string of the nginx access log, converted to an array of
+# IPs. Only warnings and errors are emitted: notices, deprecations and stack
+# traces are dropped.
 
 function emit(level, message) {
     # Join instead of gsub: awk implementations differ on backslashes in replacements
@@ -14,10 +16,7 @@ function emit(level, message) {
     gsub(/\t/, "\\t", message)
     gsub(/[\001-\037]/, "", message)
 
-    now = strftime("%Y-%m-%dT%H:%M:%S%z")
-    now = substr(now, 1, length(now) - 2) ":" substr(now, length(now) - 1)
-
-    printf "{\"source\":\"%s\",\"time\":\"%s\",\"level\":\"%s\",\"message\":\"%s\"}\n", source, now, level, message
+    printf "{\"source\":\"%s\",\"level\":\"%s\",\"message\":\"%s\"}\n", source, level, message
     fflush()
 }
 
@@ -28,6 +27,20 @@ function emit(level, message) {
 
 # Already JSON
 /^\{.*\}$/ {
+    # nginx access log: "x_forwarded_for":"1.2.3.4, 10.0.0.1" becomes ["1.2.3.4","10.0.0.1"].
+    # The value is already escaped by nginx, which never escapes commas.
+    if (source == "nginx" && match($0, /"x_forwarded_for":"([^"\\]|\\.)*"/)) {
+        count = split(substr($0, RSTART + 19, RLENGTH - 20), parts, ",")
+        ips = ""
+        for (i = 1; i <= count; i++) {
+            gsub(/^ +| +$/, "", parts[i])
+            if (parts[i] != "") {
+                ips = ips (ips == "" ? "" : ",") "\"" parts[i] "\""
+            }
+        }
+        $0 = substr($0, 1, RSTART - 1) "\"x_forwarded_for\":[" ips "]" substr($0, RSTART + RLENGTH)
+    }
+
     print
     fflush()
     next

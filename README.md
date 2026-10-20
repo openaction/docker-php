@@ -41,7 +41,8 @@ docker run --rm -p 8080:80 \
     ghcr.io/openaction/docker-php/prod:8.4
 ```
 
-`BLACKFIRE_SERVER_ID` and `BLACKFIRE_SERVER_TOKEN` enable the in-container agent. `BLACKFIRE_CLIENT_ID` and `BLACKFIRE_CLIENT_TOKEN` are used by the Blackfire CLI, for example:
+`BLACKFIRE_SERVER_ID` and `BLACKFIRE_SERVER_TOKEN` enable the in-container agent and the probe APM (disabled without
+them, so that the probe does not log agent connection errors). `BLACKFIRE_CLIENT_ID` and `BLACKFIRE_CLIENT_TOKEN` are used by the Blackfire CLI, for example:
 
 ```bash
 docker exec <container> blackfire run php bin/console app:command
@@ -66,25 +67,28 @@ When Blackfire is configured in the development image, `pcov` is disabled at con
 
 Nginx and PHP-FPM write their logs on stdout, one JSON object per line, for log sinks such as Fluent Bit:
 
-- Nginx access log: one event per request, except the requests from the container itself (healthchecks).
+- Nginx access log: one event per request, except the healthchecks: `/healthz` and the requests from the container
+  itself.
 - Nginx error log and PHP-FPM log: warnings and errors only, converted by `conf/log-to-json.awk` into
-  `{"source", "time", "level", "message"}`. PHP notices, deprecations and stack traces are dropped. The PHP-FPM
-  access log and slow request traces are disabled (the slow request warning stays).
+  `{"source", "level", "message"}`. PHP notices, deprecations and stack traces are dropped. The PHP-FPM access log and
+  slow request traces are disabled (the slow request warning stays).
 - JSON lines written by the application through PHP-FPM workers (for example Monolog on `php://stdout`) are kept
   unchanged.
+
+The events have no timestamp: the container log collector (Coolify) adds it.
 
 Access log fields:
 
 | Field | Value |
 | --- | --- |
 | `source` | `nginx` (`php-fpm` for PHP-FPM events) |
-| `time` | ISO 8601 timestamp |
 | `host` | Requested hostname |
-| `client_ip` | `CF-Connecting-IP` header |
-| `proxy_ip` | `X-Real-IP` header |
 | `method`, `path`, `query` | Request method, original path and query string |
-| `status`, `bytes_sent` | Response status and bytes sent, headers included |
+| `status` | Response status |
+| `bytes_received`, `bytes_sent` | Request and response sizes in bytes, request line and headers included |
 | `ttfb_ms` | Time to first byte in ms, see below |
+| `x_forwarded_for` | IPs of the `X-Forwarded-For` header, as an array (`[]` without header) |
+| `cf_connecting_ip`, `x_real_ip` | `CF-Connecting-IP` (Cloudflare) and `X-Real-IP` headers |
 | `referer`, `user_agent` | Request headers |
 | `app_route`, `app_time` | `X-App-Route` and `X-App-Time` response headers of the application |
 | `current_user_type`, `current_user_id` | `X-Current-User-Type` and `X-Current-User-Id` response headers |
@@ -92,4 +96,7 @@ Access log fields:
 The `X-App-*` and `X-Current-User-*` headers are logged and removed from the response. `ttfb_ms` is the time
 between the reception of the request by nginx and the sending of the response headers to the client: nginx
 evaluates `$request_time` in the `X-Response-Time` response header when it sends the headers, and the access log
-converts this header to milliseconds. It is neither the total request time nor the upstream header time.
+converts this header to milliseconds. It is neither the total request time nor the upstream header time. It is
+`null` when no response header was sent (client gone before the response, status 499), and its precision is 1 ms.
+A `location` with its own `add_header` must repeat the `X-Response-Time` header, otherwise its requests are logged
+with `ttfb_ms: null`.

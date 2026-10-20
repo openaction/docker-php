@@ -2,7 +2,6 @@
 set -e
 
 if [ -z "${BLACKFIRE_SERVER_ID:-}" ] || [ -z "${BLACKFIRE_SERVER_TOKEN:-}" ]; then
-    echo "Blackfire agent disabled: set BLACKFIRE_SERVER_ID and BLACKFIRE_SERVER_TOKEN to enable it."
     exit 0
 fi
 
