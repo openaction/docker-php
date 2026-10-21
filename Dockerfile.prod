@@ -4,6 +4,16 @@ FROM php:8.4-fpm-alpine
 
 LABEL org.opencontainers.image.source=https://github.com/openaction/docker-php
 
+# PHP 8.4.27 is not yet available as a php:8.4-fpm-alpine image: rebuild it from the official sources.
+# Remove this block, the upgrade-php script, and its RUN instruction once the base image provides this version.
+ENV PHP_VERSION=8.4.27 \
+    PHP_URL=https://www.php.net/distributions/php-8.4.27.tar.xz \
+    PHP_ASC_URL=https://www.php.net/distributions/php-8.4.27.tar.xz.asc \
+    PHP_SHA256=dcf93923b0e38e0d5252b25b796520b5a47761a08b3488b6d0b5d1115764d3f0
+
+COPY conf/upgrade-php.sh /usr/local/bin/upgrade-php
+RUN chmod +x /usr/local/bin/upgrade-php && upgrade-php
+
 ENV AMQP_VERSION=2.1.2 \
     APCU_VERSION=5.1.24 \
     REDIS_VERSION=6.2.0 \
